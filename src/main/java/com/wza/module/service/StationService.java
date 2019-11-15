@@ -12,7 +12,7 @@ import java.util.List;
 @Service
 public class StationService {
 
-    @Value("${city_url}")
+    //@Value("${city_url}")
     private String url;
 
     /**
