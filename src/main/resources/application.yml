@@ -1,0 +1,16 @@
+spring:
+  redis:
+    host: wangzhiao.cn
+    port: 6379
+    password:
+    timeout: 3000
+  datasource:
+    url: jdbc:mysql://wangzhiao.cn:3306/ticket_grabbing?zeroDateTimeBehavior=convertToNull&useUnicode=yes&characterEncoding=UTF-8&useSSL=false
+    username: admin
+    password: 123456
+server:
+  port: 8087
+logging:
+  level:
+    org.apache.http.wire: info
+    org.apache.http.headers: info
