@@ -22,7 +22,7 @@ public class Swagger {
     public Docket apiManage() {
         // [ Base URL: xxx.xxx.cn/ ] https://xxx.xxx.cn/v2/api-docs?group=SplashAPI
         return new Docket(DocumentationType.SWAGGER_2)
-                .groupName("WZA后台API")
+                .groupName("半仙后台API")
                 .select()
                 .apis(RequestHandlerSelectors.basePackage("com.wza.module"))
                 .paths(PathSelectors.ant("/api/v?/client/**"))
@@ -57,12 +57,12 @@ public class Swagger {
 
     private ApiInfo apiInfo() {
         return new ApiInfo(
-                "WZA API",
-                "API文档，有问题请联系我们 - WZA研发团队\n " +
+                "半仙 API",
+                "API文档，有问题请联系我们 - 半仙研发团队\n " +
                         "需要认证的API，不提供Authorization头、提供错误、无效、过期的返回401",
                 "API TOS",
                 "Terms of service",
-                new Contact("WZA研发中心", "", ""),
+                new Contact("半仙研发中心", "", ""),
                 "License of API", "API license URL", Collections.emptyList());
     }
 }

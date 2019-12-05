@@ -12,6 +12,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * @author  banxian
+ * @date  2019/11/25
+ */
 @Component
 public class StationBridge {
     @Resource
@@ -42,7 +46,7 @@ public class StationBridge {
         return list;
     }
 
-    public List<StationVo> listStationWhere(List<StationVo> list, String name) {
+    private List<StationVo> listStationWhere(List<StationVo> list, String name) {
         List<StationVo> stations = new ArrayList<>();
         long a=System.currentTimeMillis();
         list.stream().forEach( stationVo -> {

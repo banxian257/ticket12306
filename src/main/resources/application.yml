@@ -4,3 +4,26 @@ logging:
   level:
     org.apache.http.wire: info
     org.apache.http.headers: info
+
+
+
+
+
+ticket:
+  date: 2019-09-25#2019-09-26#2019-09-25
+  trainnumber: K136,K123K156#K9698K44555
+# 邮箱
+spring:
+  mail:
+    auth: true
+    default-encoding: utf-8
+    host: smtp.163.com
+    password: wang25766980
+    port: 465
+    properties:
+      mail:
+        smtp:
+          ssl:
+            enable: true
+    protocol: smtp
+    username: 17612165450@163.com

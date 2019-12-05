@@ -1,10 +1,10 @@
 package com.wza.common.util;
 
-import com.wza.module.service.LoginService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.NameValuePair;
 import org.apache.http.ParseException;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -32,14 +32,21 @@ import java.util.List;
 import java.util.Map;
 
 public class HttpClientTool {
-    private static CloseableHttpClient httpClient;
+    public static CloseableHttpClient httpClient;
     public static final String CHARSET = "UTF-8";
-
+    public static BasicCookieStore cookieStore=new BasicCookieStore();
     // 采用静态代码块，初始化超时时间配置，再根据配置生成默认httpClient对象
     static {
         RequestConfig config = RequestConfig.custom().setConnectTimeout(60000).setSocketTimeout(15000).build();
-        httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).setDefaultCookieStore(new BasicCookieStore()).build();
+        httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).setDefaultCookieStore(cookieStore).build();
+
     }
+/*
+    public static void initHttpClient(BasicCookieStore store) {
+        RequestConfig config = RequestConfig.custom().setConnectTimeout(60000).setSocketTimeout(15000).build();
+        httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).setDefaultCookieStore(store).build();
+    }
+*/
 
     /**
      * HTTP Get 获取内容
@@ -66,7 +73,7 @@ public class HttpClientTool {
             }
             HttpGet httpGet = new HttpGet(url);
             //header
-            if (headers != null && headers.isEmpty()) {
+            if (headers != null && !headers.isEmpty()) {
                 headers.forEach(httpGet::addHeader);
             }
 
@@ -98,10 +105,11 @@ public class HttpClientTool {
      * @return 页面内容
      * @throws IOException
      */
-    public static String doPost(String url, Map<String, String> headers, Map<String, String> params) throws IOException {
+    public static String doPost(String url, Map<String, String> headers, Map<String, String> params) throws Exception {
         if (StringUtils.isBlank(url)) {
             return null;
         }
+
         List<NameValuePair> pairs = null;
         if (params != null && !params.isEmpty()) {
             pairs = new ArrayList<NameValuePair>(params.size());
@@ -114,7 +122,7 @@ public class HttpClientTool {
         }
         HttpPost httpPost = new HttpPost(url);
         //header
-        if (headers != null && headers.isEmpty()) {
+        if (headers != null && !headers.isEmpty()) {
             headers.forEach(httpPost::addHeader);
         }
         //参数
@@ -127,8 +135,8 @@ public class HttpClientTool {
         try {
             response = httpClient.execute(httpPost);
             int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode != 200) {
-                System.out.println( EntityUtils.toString(response.getEntity(),CHARSET));
+            if (statusCode != 200 && statusCode != 302) {
+                System.out.println(EntityUtils.toString(response.getEntity(), CHARSET));
                 httpPost.abort();
                 throw new RuntimeException("HttpClient,error status code :" + statusCode);
             }
@@ -138,14 +146,16 @@ public class HttpClientTool {
                 result = EntityUtils.toString(entity, CHARSET);
             }
             EntityUtils.consume(entity);
-
+            if (statusCode == 302) {
+                return "302";
+            }
 
             return result;
         } catch (ParseException e) {
             e.printStackTrace();
         } finally {
-           // if (response != null)
-              //  response.close();
+            // if (response != null)
+            //  response.close();
         }
         return null;
     }
@@ -173,9 +183,12 @@ public class HttpClientTool {
                 url += "?" + EntityUtils.toString(new UrlEncodedFormEntity(pairs, CHARSET));
             }
             HttpGet httpGet = new HttpGet(url);
-
+            //header
+            if (headers != null && !headers.isEmpty()) {
+                headers.forEach(httpGet::addHeader);
+            }
             // https  注意这里获取https内容，使用了忽略证书的方式，当然还有其他的方式来获取https内容
-          //  CloseableHttpClient httpsClient = HttpClientTool.createSSLClientDefault();
+            //  CloseableHttpClient httpsClient = HttpClientTool.createSSLClientDefault();
 
             CloseableHttpResponse response = httpClient.execute(httpGet);
             int statusCode = response.getStatusLine().getStatusCode();
@@ -189,9 +202,6 @@ public class HttpClientTool {
                 result = EntityUtils.toString(entity, "utf-8");
             }
             EntityUtils.consume(entity);
-            System.out.println(response.getHeaders("Set-Cookie"));
-           // response.close();
-
             return result;
         } catch (Exception e) {
             e.printStackTrace();
