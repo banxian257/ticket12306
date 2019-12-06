@@ -3,15 +3,13 @@ package com.wza.module.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wza.common.util.ApiUrl;
-import com.wza.common.util.HttpClient;
 import com.wza.common.util.HttpClientTool;
+import com.wza.common.util.LogdeviceUtil;
+import com.wza.module.entity.Logdevice;
 import com.wza.module.entity.TicketConfig;
-import com.wza.module.util.Utils;
 import org.apache.http.impl.cookie.BasicClientCookie;
 import org.springframework.stereotype.Service;
 
-import java.net.CookieStore;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,23 +17,19 @@ import java.util.Map;
 public class LoginService {
 
 
-    public static void main(String[] args) {
-
-        System.out.println(new Date());
-    }
-
     /**
      * 登录 账号密码
+     *
      * @param name
      * @param pwd
      */
     public void login(String name, String pwd) {
         try {
-
-      /*      // 是否需要验证码登录
+ /*           // 获取动态秘钥
+            //   Device.init();
+            // 是否需要验证码登录
             boolean loginPassCode = false;
             HttpClientTool.doGetSSL(ApiUrl.loginInitPage, null, null);
-
 
 
             //获取登录的配置
@@ -46,6 +40,7 @@ public class LoginService {
 */
             //登录需要验证码
             if (true) {
+                setCookies();
                 //获取验证码
                 System.out.println("获取登录验证码");
                 String img = getCheckImg();
@@ -60,32 +55,40 @@ public class LoginService {
                 map.put("password", pwd);
                 map.put("appid", "otn");
                 map.put("answer", coordinate);
-            /*    Utils.initRail();*/
+                /*    登录*/
                 String loginResult = HttpClientTool.doPost(ApiUrl.login, getLoginHeader(), map);
-                if ("302".equals(loginResult)){
-                     loginResult = HttpClientTool.doPost(ApiUrl.passport, getLoginHeader(), map);
-
-                }
+                //转发进入首页
+                //loginResult = HttpClientTool.doPost(ApiUrl.passport, getLoginHeader(), map);
                 //JSONObject login = JSON.parseObject(loginResult);
-             //   System.out.println(loginResult);
+                //   System.out.println(loginResult);
                 checkOnline();
-                TicketConfig t=new TicketConfig();
+                TicketConfig t = new TicketConfig();
                 StationService.init();
                 t.setDate("2019-11-26");
                 t.setArrival(StationService.getCode("徐州东"));
                 t.setDeparture(StationService.getCode("上海虹桥"));
-                BuyTickets b=new BuyTickets();
+                BuyTickets b = new BuyTickets();
 
-             //   b.QueryTicket(t);
+                   b.QueryTicket(t);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 获取秘钥
+     */
+    public void secretKey() {
+        String result = HttpClientTool.doGet("http://rail.51ab.top/api/getRailId", null, null);
+
+    }
+
+
     /**
      * 基本头部
      */
-    public  Map<String, String> getHeaderMap() {
+    public Map<String, String> getHeaderMap() {
         Map<String, String> header = new HashMap<>();
         header.put("User-Agent", ApiUrl.userAgent);
         header.put("Host", ApiUrl.host);
@@ -210,6 +213,41 @@ public class LoginService {
         } else {
             return "";
         }
+    }
+
+    //设置cookies
+    public void setCookies() {
+        Logdevice logdevice = LogdeviceUtil.getLogdevice();
+
+
+        BasicClientCookie expiration = new BasicClientCookie("RAIL_EXPIRATION", logdevice.getExp());
+        expiration.setDomain(ApiUrl.host);
+        expiration.setPath("/");
+        HttpClientTool.cookieStore.addCookie(expiration);
+        BasicClientCookie deviceid = new BasicClientCookie("RAIL_DEVICEID", logdevice.getExp());
+        deviceid.setDomain(ApiUrl.host);
+        deviceid.setPath("/");
+        HttpClientTool.cookieStore.addCookie(expiration);
+    }
+
+    /**
+     * 本方法放弃
+     * 用于获取cookies  (不懂不知道这 cookie 怎么生成的么)
+     * 问题是 本半仙     不懂得如何根据 GetJS.js
+     * 解析出algID 和hashCode
+     *
+     * @throws Exception
+     */
+    static void initRail() throws Exception {
+        //获取RAIL_DEVICEID和RAIL_EXPIRATION
+        //String getJsUrl = "https://kyfw.12306.cn/otn/HttpZF/GetJS";
+        String resStr = HttpClientTool.doPost(ApiUrl.getRailUrl, null, null);
+
+        String str = resStr.substring(resStr.indexOf("{"), resStr.indexOf("}") + 1);
+        System.out.println(str);
+        JSONObject obj = JSON.parseObject(str);
+        //  Utils.addRailCookies(obj.getString("exp"), obj.getString("dfp"));
+        System.out.println(obj.getString("exp") + obj.getString("dfp"));
     }
 
 

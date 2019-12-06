@@ -39,17 +39,6 @@ public class BuyTickets {
         reserveTicket();
     }
 
-    public static void main(String[] args) {
-        TicketConfig t = new TicketConfig();
-        StationService.init();
-        t.setDate("2019-11-25");
-        t.setArrival(StationService.getCode("徐州东"));
-        t.setDeparture(StationService.getCode("上海虹桥"));
-        BuyTickets b = new BuyTickets();
-
-        b.QueryTicket(t);
-    }
-
     /**
      * 预定车票
      */
