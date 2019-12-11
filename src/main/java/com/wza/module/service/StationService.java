@@ -5,7 +5,13 @@ import com.wza.common.util.HttpClient;
 import com.wza.module.vo.StationVo;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class StationService {
@@ -67,12 +73,29 @@ public class StationService {
             stations[i - 1][1] = str[2];
         }
         for (String[] str : stations) {
-            code.put(str[0],str[1]);
-            code.put(str[1],str[0]);
+            code.put(str[0], str[1]);
+            code.put(str[1], str[0]);
         }
     }
 
     public static void main(String[] args) {
-        StationService.init();
+        ExecutorService service =
+                Executors.newFixedThreadPool(3);
+        while (true) {
+            service.execute(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        System.out.println("aa");
+                        TimeUnit.MILLISECONDS.sleep(500);
+                       // System.exit(0);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
     }
+
+
 }

@@ -1,4 +1,4 @@
-package com.wza.module.service;
+package com.wza.module.entity;
 
 import lombok.Data;
 

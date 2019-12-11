@@ -5,13 +5,23 @@ logging:
     org.apache.http.wire: info
     org.apache.http.headers: info
 
+# 抢票线最大线程数量
+max_pool_count : 10
 
-
-
-
+12306:
+ account: 18251780867
+ pwd: wang0832
+  # 多余用，隔开。 目前不支持 多日抢票 （不是不会做 本仙就是懒得做。）
 ticket:
   date: 2019-09-25#2019-09-26#2019-09-25
-  trainnumber: K136,K123K156#K9698K44555
+  train_number: K123,K456,G789##G321,G456
+  seats:
+  departure :
+  arrival :
+  user_name: 王半仙
+
+
+  # 本仙 没钱 所以没做 短信通知/语音电话通知抢票成功  使用 免费的 邮箱通知。
 # 邮箱
 spring:
   mail:
@@ -27,3 +37,6 @@ spring:
             enable: true
     protocol: smtp
     username: 17612165450@163.com
+to_email: 17612165450@163.com  #抢票成功接收人邮箱
+
+

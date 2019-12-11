@@ -2,28 +2,29 @@ package com.wza.module.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.wza.common.util.ApiUrl;
-import com.wza.common.util.HttpClientTool;
-import com.wza.common.util.LogdeviceUtil;
+import com.wza.common.util.*;
 import com.wza.module.entity.Logdevice;
-import com.wza.module.entity.TicketConfig;
 import org.apache.http.impl.cookie.BasicClientCookie;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class LoginService {
-
+    @Resource
+    private ConfigService configService;
+    @Value("${12306.account}")
+    private String name;
+    @Value("${12306.pwd}")
+    private String pwd;
 
     /**
      * 登录 账号密码
-     *
-     * @param name
-     * @param pwd
      */
-    public void login(String name, String pwd) {
+    public void login() {
         try {
  /*           // 获取动态秘钥
             //   Device.init();
@@ -38,39 +39,33 @@ public class LoginService {
                 loginPassCode = true;
             }
 */
-            //登录需要验证码
-            if (true) {
-                setCookies();
-                //获取验证码
-                System.out.println("获取登录验证码");
-                String img = getCheckImg();
-                //自动 识别 验证码
-                String coordinate = automaticRecognitionCheckCode(img);
-                System.out.println("自动识别验证码坐标:" + coordinate);
-                //请求校验验证码
-                CheckCoordinate(coordinate);
-                System.out.println("验证码识别通过:" + coordinate);
-                Map<String, String> map = new HashMap<>();
-                map.put("username", name);
-                map.put("password", pwd);
-                map.put("appid", "otn");
-                map.put("answer", coordinate);
-                /*    登录*/
-                String loginResult = HttpClientTool.doPost(ApiUrl.login, getLoginHeader(), map);
-                //转发进入首页
-                //loginResult = HttpClientTool.doPost(ApiUrl.passport, getLoginHeader(), map);
-                //JSONObject login = JSON.parseObject(loginResult);
-                //   System.out.println(loginResult);
-                checkOnline();
-                TicketConfig t = new TicketConfig();
-                StationService.init();
-                t.setDate("2019-11-26");
-                t.setArrival(StationService.getCode("徐州东"));
-                t.setDeparture(StationService.getCode("上海虹桥"));
-                BuyTickets b = new BuyTickets();
+            //设置cookies
+            setCookies();
+            //获取验证码
+            System.out.println("获取登录验证码");
+            String img = Util.getCheckImg();
+            //自动 识别 验证码
+            String coordinate = OrcUtil.automaticRecognitionCheckCode(img);
+            System.out.println("自动识别验证码坐标:" + coordinate);
+            //请求校验验证码
+            CheckCoordinate(coordinate);
+            System.out.println("验证码识别通过:" + coordinate);
+            Map<String, String> map = new HashMap<>();
+            map.put("username", name);
+            map.put("password", pwd);
+            map.put("appid", "otn");
+            map.put("answer", coordinate);
+            /*    登录*/
+            String loginResult = HttpClientTool.doPost(ApiUrl.login, getLoginHeader(), map);
+            //转发进入首页
+            //loginResult = HttpClientTool.doPost(ApiUrl.passport, getLoginHeader(), map);
+            //JSONObject login = JSON.parseObject(loginResult);
+            //   System.out.println(loginResult);
 
-                   b.QueryTicket(t);
-            }
+            checkOnline();
+            System.out.println(loginResult);
+
+            //      configService.init();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -157,15 +152,6 @@ public class LoginService {
 
     }
 
-    /**
-     * 获取登录的图片验证码
-     */
-    public String getCheckImg() throws Exception {
-        Map map = getHeaderMap();
-        map.put("Referer", ApiUrl.queryInitPage);
-        String content = HttpClientTool.doPost(String.format(ApiUrl.captchaImage, Math.random()), null, null);
-        return JSON.parseObject(content).getString("image");
-    }
 
     public void CheckCoordinate(String coordinate) throws Exception {
         Map map = getHeaderMap();
@@ -175,59 +161,21 @@ public class LoginService {
 
     }
 
-    /**
-     * 自动识别验证码
-     *
-     * @return 坐标
-     */
-    public String automaticRecognitionCheckCode(String img) throws Exception {
-        Map<String, String> body = new HashMap<>(1);
-        body.put("img", img);
-        String result = HttpClientTool.doPost(ApiUrl.automaticRecognition, null, body);
-        JSONObject jsonObject = JSON.parseObject(result);
-        if (jsonObject.getString("msg").equals("success")) {
-            String[] position = jsonObject.getString("result").replaceAll("\\[", "").replaceAll("\\]", "").split(",");
-            StringBuffer sb = new StringBuffer();
-            for (int i = 0; i < position.length; i++) {
-                String ent = position[i];
-                if (ent.equals("1")) {
-                    sb.append("(31,45),");
-                } else if (ent.equals("2")) {
-                    sb.append("(100,45),");
-                } else if (ent.equals("3")) {
-                    sb.append("(170,45),");
-                } else if (ent.equals("4")) {
-                    sb.append("(240,45),");
-                } else if (ent.equals("5")) {
-                    sb.append("(30,115),");
-                } else if (ent.equals("6")) {
-                    sb.append("(100,115),");
-                } else if (ent.equals("7")) {
-                    sb.append("(170,115),");
-                } else if (ent.equals("8")) {
-                    sb.append("(240,115),");
-                }
-            }
-            String xy = sb.toString().substring(0, sb.toString().length() - 1);
-            return xy.replaceAll("\\(", "").replaceAll("\\)", "");
-        } else {
-            return "";
-        }
-    }
 
     //设置cookies
     public void setCookies() {
         Logdevice logdevice = LogdeviceUtil.getLogdevice();
-
+        System.out.println("RAIL_EXPIRATION："+logdevice.getExp());
+        System.out.println("RAIL_DEVICEID："+logdevice.getDfp());
 
         BasicClientCookie expiration = new BasicClientCookie("RAIL_EXPIRATION", logdevice.getExp());
         expiration.setDomain(ApiUrl.host);
         expiration.setPath("/");
         HttpClientTool.cookieStore.addCookie(expiration);
-        BasicClientCookie deviceid = new BasicClientCookie("RAIL_DEVICEID", logdevice.getExp());
+        BasicClientCookie deviceid = new BasicClientCookie("RAIL_DEVICEID", logdevice.getDfp());
         deviceid.setDomain(ApiUrl.host);
         deviceid.setPath("/");
-        HttpClientTool.cookieStore.addCookie(expiration);
+        HttpClientTool.cookieStore.addCookie(deviceid);
     }
 
     /**

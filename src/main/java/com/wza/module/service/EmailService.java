@@ -1,5 +1,6 @@
 package com.wza.module.service;
 
+import com.wza.module.entity.EmailInfo;
 import freemarker.template.Template;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
