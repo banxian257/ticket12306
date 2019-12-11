@@ -2,6 +2,7 @@ package com.wza.module.service;
 
 import com.wza.common.util.ApiUrl;
 import com.wza.common.util.HttpClient;
+import com.wza.common.util.HttpClientTool;
 import com.wza.module.vo.StationVo;
 import org.springframework.stereotype.Service;
 
@@ -9,9 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class StationService {
@@ -19,15 +17,15 @@ public class StationService {
     //@Value("${city_url}")
     private String url;
 
-    /**
+/*    *//**
      * 获取全国城市 车站
      *
      * @return 车站信息
-     */
+     *//*
     public List<StationVo> listStation() {
         List<StationVo> list = new ArrayList<>();
         //获取车站信息 并处理
-/*        //String stationStr = HttpClient.get(url);
+*//*        String stationStr = HttpClientTool.doGet(ApiUrl.,null,null);
         stationStr = stationStr.replaceFirst("var station_names ='@", "").replaceFirst("';", "");
         Arrays.asList(stationStr.split("@")).stream().forEach(str -> {
             StationVo cityVo = new StationVo();
@@ -39,9 +37,9 @@ public class StationService {
             cityVo.setFirstPinyin(citys[4]);
             cityVo.setCode(citys[5]);
             list.add(cityVo);
-        });*/
+        });*//*
         return list;
-    }
+    }*/
 
     public static Map<String, String> code = new HashMap<>();
 
@@ -79,22 +77,8 @@ public class StationService {
     }
 
     public static void main(String[] args) {
-        ExecutorService service =
-                Executors.newFixedThreadPool(3);
-        while (true) {
-            service.execute(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        System.out.println("aa");
-                        TimeUnit.MILLISECONDS.sleep(500);
-                       // System.exit(0);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        }
+        init();
+        System.out.println( getCode("上海南站"));
     }
 
 

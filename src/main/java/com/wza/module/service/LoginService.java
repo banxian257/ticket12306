@@ -57,15 +57,19 @@ public class LoginService {
             map.put("answer", coordinate);
             /*    登录*/
             String loginResult = HttpClientTool.doPost(ApiUrl.login, getLoginHeader(), map);
-            //转发进入首页
-            //loginResult = HttpClientTool.doPost(ApiUrl.passport, getLoginHeader(), map);
-            //JSONObject login = JSON.parseObject(loginResult);
-            //   System.out.println(loginResult);
-
-            checkOnline();
             System.out.println(loginResult);
+            //转发进入首页
+            loginResult = HttpClientTool.doPost(ApiUrl.passport, getLoginHeader(), map);
+            if (loginResult.equals("302")) {
+                HttpClientTool.doGet(ApiUrl.userLogin,getLoginHeader(),null);
+            }
+      /*      JSONObject login = JSON.parseObject(loginResult);
+               System.out.println(loginResult);*/
 
-            //      configService.init();
+          //  checkOnline();
+
+
+                 configService.init();
         } catch (Exception e) {
             e.printStackTrace();
         }

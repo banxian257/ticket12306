@@ -12,13 +12,15 @@ max_pool_count : 10
  account: 18251780867
  pwd: wang0832
   # 多余用，隔开。 目前不支持 多日抢票 （不是不会做 本仙就是懒得做。）
+ # 可用值 商务座,特等座,一等座,二等座,高级软卧,软卧,硬卧,软座,硬座,无座
+ #请不要输错车站名
 ticket:
-  date: 2019-09-25#2019-09-26#2019-09-25
-  train_number: K123,K456,G789##G321,G456
-  seats:
-  departure :
-  arrival :
-  user_name: 王半仙
+  date: 2020-01-08
+  train_number: K528
+  seats: 无座
+  departure : 上海南
+  arrival : 苏州
+  user_name: 王志傲
 
 
   # 本仙 没钱 所以没做 短信通知/语音电话通知抢票成功  使用 免费的 邮箱通知。

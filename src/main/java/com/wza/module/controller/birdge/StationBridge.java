@@ -29,26 +29,26 @@ public class StationBridge {
      * @return 返回城市集合
      */
     public List<StationVo> listStation(String name) {
-        List<StationVo> list;
+        List<StationVo> list= new ArrayList<>();
 
-        //获取车站信息
+/*        //获取车站信息
         if (redisTemplate.opsForValue().get(Constant.StationKey) == null) {
-            list =  stationService.listStation();
-            redisTemplate.opsForValue().set(Constant.StationKey, list, 1, TimeUnit.DAYS);
+           // list =  stationService.listStation();
+           // redisTemplate.opsForValue().set(Constant.StationKey, list, 1, TimeUnit.DAYS);
 
         } else {
             list = redisTemplate.opsForValue().get(Constant.StationKey);
         }
 
         //是否带条件检索
-        if (!StringUtils.isEmpty(name)) return listStationWhere(list, name);
+        if (!StringUtils.isEmpty(name)) return listStationWhere(list, name);*/
 
         return list;
     }
 
     private List<StationVo> listStationWhere(List<StationVo> list, String name) {
         List<StationVo> stations = new ArrayList<>();
-        long a=System.currentTimeMillis();
+  /*      long a=System.currentTimeMillis();
         list.stream().forEach( stationVo -> {
             if (stationVo.getMame().contains(name) || stationVo.getPinyin().contains(name)
                     || stationVo.getChaosPinyin().contains(name) || stationVo.getFirstPinyin().contains(name) || stationVo.getCapitalization().contains(name)
@@ -56,7 +56,7 @@ public class StationBridge {
                 stations.add(stationVo);
             }
         });
-        System.out.println(System.currentTimeMillis()-a);
+        System.out.println(System.currentTimeMillis()-a);*/
         return stations;
     }
 }

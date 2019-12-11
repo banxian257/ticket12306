@@ -7,7 +7,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class ConfigService {
@@ -27,11 +26,12 @@ public class ConfigService {
     public String email;
     @Value("${max_pool_count}")
     public Integer maxPoolCount;
+
     public void init() {
         TicketConfig ticketConfig = new TicketConfig();
         ticketConfig.setDate(date);
         ticketConfig.setDeparture(departure);
-        ticketConfig.setArrival(seats);
+        ticketConfig.setArrival(arrival);
         ticketConfig.setUserNames(userNames);
         ticketConfig.setTrainNumbers(trainNumbers);
         ticketConfig.setSeats(seats);
@@ -47,6 +47,7 @@ public class ConfigService {
                 public void run() {
                     try {
                         new BuyTickets().QueryTicket(ticketConfig);
+                        System.out.println("线程"+Thread.currentThread().getId()+"抢票中");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

@@ -1,10 +1,7 @@
 package com.wza.common.util;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.NameValuePair;
-import org.apache.http.ParseException;
-import org.apache.http.client.CookieStore;
+import org.apache.http.*;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -16,12 +13,17 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 
 import javax.net.ssl.SSLContext;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -30,11 +32,13 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
 public class HttpClientTool {
     public static CloseableHttpClient httpClient;
     public static final String CHARSET = "UTF-8";
-    public static BasicCookieStore cookieStore=new BasicCookieStore();
+    public static BasicCookieStore cookieStore = new BasicCookieStore();
+
     // 采用静态代码块，初始化超时时间配置，再根据配置生成默认httpClient对象
     static {
         RequestConfig config = RequestConfig.custom().setConnectTimeout(60000).setSocketTimeout(15000).build();
@@ -210,6 +214,39 @@ public class HttpClientTool {
     }
 
     /**
+     * 发送HttpGet请求
+     *
+     * @param url
+     * @return
+     */
+    public static String sendGet(String url) {
+
+        HttpGet httpget = new HttpGet(url);
+        CloseableHttpResponse response = null;
+        try {
+            response = createSSLClientDefault().execute(httpget);
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+        String result = null;
+        try {
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                result = EntityUtils.toString(entity);
+            }
+        } catch (ParseException | IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                response.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+    /**
      * 这里创建了忽略整数验证的CloseableHttpClient对象
      *
      * @return
@@ -232,5 +269,59 @@ public class HttpClientTool {
             e.printStackTrace();
         }
         return HttpClients.createDefault();
+    }
+
+    public static String getResponseString(HttpResponse res) throws Exception {
+//        setReponseHeaderString(res);
+        String tString = null;
+        HttpEntity entity = res.getEntity();
+        if (entity != null) {
+            BufferedReader reader = null;
+            InputStream is = null;
+            InputStreamReader isReader = null;
+            try {
+                is = entity.getContent();
+                //判断响应是否使用了Gzip压缩
+                Header ceHeader = res.getFirstHeader("Content-Encoding");
+                if (ceHeader != null && ceHeader.getValue().toLowerCase().contains("gzip")) {
+                    GZIPInputStream gz = new GZIPInputStream(is);
+                    isReader = new InputStreamReader(gz, StandardCharsets.UTF_8);
+                } else {
+                    isReader = new InputStreamReader(is, StandardCharsets.UTF_8);
+                }
+                reader = new BufferedReader(isReader);
+                StringBuilder sb = new StringBuilder();
+                String temp = null;
+                while ((temp = reader.readLine()) != null) {
+                    sb.append(temp);
+                }
+                tString = sb.toString();
+            } catch (Exception e) {
+                throw e;
+            } finally {
+                if (is != null) {
+                    try {
+                        is.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (isReader != null) {
+                    try {
+                        isReader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+        return tString;
     }
 }

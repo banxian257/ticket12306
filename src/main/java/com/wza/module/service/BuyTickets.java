@@ -26,16 +26,19 @@ public class BuyTickets {
      * 查询剩余车票
      */
     public void QueryTicket(TicketConfig ticketConfig) {
-        this.ticketConfig=ticketConfig;
+        this.ticketConfig = ticketConfig;
         Map<String, String> header = new HashMap<>();
         header.put("User-Agent", ApiUrl.userAgent);
         header.put("Host", ApiUrl.host);
         header.put("Referer", ApiUrl.referer);
         header.put("X-Requested-With", "XMLHttpRequest");
         header.put("Referer", ApiUrl.queryInitPage);
-
+        if (StationService.getCode(ticketConfig.getDeparture()) == null || StationService.getCode(ticketConfig.getArrival()) == null) {
+            System.out.println("请输入正确的出发站或到达站");
+            System.exit(0);
+        }
         String result = HttpClientTool.doGetSSL(String.format(ApiUrl.leftTicket, ticketConfig.getDate(),
-                ticketConfig.getDeparture(), ticketConfig.getArrival()), header, null);
+                StationService.getCode(ticketConfig.getDeparture()), StationService.getCode(ticketConfig.getArrival())), header, null);
 
         Map data = (Map) JSON.parseObject(result, Map.class).get("data");
         if (!CollectionUtils.isEmpty(data)) {
@@ -206,6 +209,7 @@ public class BuyTickets {
                     EmailService emailService = SpringContextUtil.getBean(EmailService.class);
                     emailService.sendMessageMail(ticketConfig.getEmailInfo());
                     System.out.println("你已经抢票成功，欢迎下次继续使用半仙抢票系统!");
+                    System.out.println("线程" + Thread.currentThread().getId() + "抢票结束!");
                     System.exit(0);
                     return;
                 }
@@ -444,6 +448,7 @@ public class BuyTickets {
                     message = data.get("msg") + "";
                     if (null != data.get("msg")) {// 已有订单
                         System.out.println(data.get("msg"));
+                        System.out.println("线程" + Thread.currentThread().getId() + "抢票结束!");
                         System.exit(0);
                     }
                     Thread.sleep(1000);
