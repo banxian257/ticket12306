@@ -72,6 +72,7 @@ public class QueryTicket {
                     System.out.println("初始化查询地址完成，地址是：[" +    Constant.queryTicket + "]");
                 }
             }
+            response.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

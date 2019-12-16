@@ -170,7 +170,13 @@ public class HttpClientTool {
 
     public static String doGetSSL(String url, Map<String, String> headers, Map<String, String> params, RequestConfig config, BasicCookieStore cookieStore) {
         CloseableHttpClient httpClient = getHttpClient(cookieStore);
-        return doGet(url, headers, params, httpClient, config);
+        String str= doGet(url, headers, params, httpClient, config);
+        try {
+            httpClient.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return str;
     }
 
     /**

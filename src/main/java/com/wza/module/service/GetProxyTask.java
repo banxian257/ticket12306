@@ -17,12 +17,18 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 
 @Component
 public class GetProxyTask {
-
+    public static ConcurrentHashMap<String, Object> cacheMap = new ConcurrentHashMap<>();
     //private Logger logger = LoggerFactory.getLogger(GetProxyTask.class);
 
+    ExecutorService service =
+            Executors.newFixedThreadPool(10);
 
     public static void main(String[] args) {
         GetProxyTask getProxyTask = new GetProxyTask();
@@ -38,7 +44,8 @@ public class GetProxyTask {
     @Scheduled(fixedDelay = 5 * 60 * 1000)
     public void getProxyIp() {
         try {
-            for (int page = 1; page < 7; page++) {
+            for (int page = 1; page < 4; page++) {
+                System.out.println("第" + page + "次执行");
                 this.getProxyIp3366(page);
             }
             ProxyCache.setUsableProxy();

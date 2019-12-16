@@ -33,7 +33,7 @@ public interface ApiUrl {
     String userInfo = baseUrl + "/otn/modifyUser/initQueryUserInfoApi";
     //乘客信息
     String getPassengerDTOs = baseUrl + "/otn/confirmPassenger/getPassengerDTOs";
-
+    //预定按钮
     String submitOrderRequest = baseUrl + "/otn/leftTicket/submitOrderRequest";
     //下单信息
     String checkOrderInfo = baseUrl + "/otn/confirmPassenger/checkOrderInfo";

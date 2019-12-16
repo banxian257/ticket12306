@@ -14,78 +14,84 @@ import org.apache.http.impl.client.BasicCookieStore;
 import org.springframework.util.CollectionUtils;
 
 import java.net.URLDecoder;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class BuyTickets {
-
     private Map<String, String> headers;
     private TicketConfig ticketConfig;
     private String oldPassengerStr;
     private String passengerTicketStr;
     private BasicCookieStore basicCookieStore = new BasicCookieStore();
+    private HttpProxy httpProxy;
 
     /**
      * 查询剩余车票
      */
     public void QueryTicket(TicketConfig ticketConfig) {
-        this.ticketConfig = ticketConfig;
-        Map<String, String> header = new HashMap<>();
-        header.put("User-Agent", ApiUrl.userAgent);
-        header.put("Host", ApiUrl.host);
-        header.put("Referer", ApiUrl.referer);
-        header.put("X-Requested-With", "XMLHttpRequest");
-        header.put("Referer", ApiUrl.queryInitPage);
-        if (StationService.getCode(ticketConfig.getDeparture()) == null || StationService.getCode(ticketConfig.getArrival()) == null) {
-            System.out.println("请输入正确的出发站或到达站");
-            System.exit(0);
-        }
-        HttpProxy httpProxy = ProxyCache.getHttpProxy();
-        if (httpProxy == null) {
-            try {
-                Thread.sleep(3000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+        try {
+            this.ticketConfig = ticketConfig;
+            Map<String, String> header = new HashMap<>();
+            header.put("User-Agent", ApiUrl.userAgent);
+            header.put("Host", ApiUrl.host);
+            header.put("Referer", ApiUrl.referer);
+            header.put("X-Requested-With", "XMLHttpRequest");
+            header.put("Referer", ApiUrl.queryInitPage);
+            if (StationService.getCode(ticketConfig.getDeparture()) == null || StationService.getCode(ticketConfig.getArrival()) == null) {
+                System.out.println("请输入正确的出发站或到达站");
+                System.exit(0);
             }
-            return;
-        }
-        HttpHost proxy = new HttpHost(httpProxy.getIp(), httpProxy.getPort());
-        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(3000)
-                .setConnectionRequestTimeout(3000).setSocketTimeout(3000).setProxy(proxy).build();
-        String url = String.format(ApiUrl.leftTicketByCdn, Constant.queryTicket, ticketConfig.getDate(),
-                StationService.getCode(ticketConfig.getDeparture()), StationService.getCode(ticketConfig.getArrival()));
-        String result = HttpClientTool.doGetSSL(url, header, null, requestConfig, basicCookieStore);
-
-        Map data = (Map) JSON.parseObject(result, Map.class).get("data");
-        if (!CollectionUtils.isEmpty(data)) {
-            List<String> arr = (List<String>) data.get("result");
-            // 解析车次信息
-            Map<String, Map<String, String>> ticketMap = new ConcurrentHashMap<String, Map<String, String>>();
-            analysisTicket(arr, ticketMap);
-            //指定车次
-            List<String> trainNumber = new ArrayList<>();
-            if (StringUtils.isNotBlank(ticketConfig.getTrainNumbers())) {
-                trainNumber = Arrays.asList(ticketConfig.getTrainNumbers().split(","));
-            } else { //没有指定车次 就默认所有车次
-                Set<String> keys = ticketMap.keySet();
-                trainNumber.addAll(keys);
+            httpProxy = ProxyCache.getHttpProxy();
+            String result = "";
+            if (httpProxy == null) {
+                String url = String.format(ApiUrl.leftTicketByCdn, Constant.queryTicket, ticketConfig.getDate(),
+                        StationService.getCode(ticketConfig.getDeparture()), StationService.getCode(ticketConfig.getArrival()));
+                result = HttpClientTool.doGetSSL(url, header, null);
+            } else {
+                HttpHost proxy = new HttpHost(httpProxy.getIp(), httpProxy.getPort());
+                RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(3000)
+                        .setConnectionRequestTimeout(3000).setSocketTimeout(3000).setProxy(proxy).build();
+                String url = String.format(ApiUrl.leftTicketByCdn, Constant.queryTicket, ticketConfig.getDate(),
+                        StationService.getCode(ticketConfig.getDeparture()), StationService.getCode(ticketConfig.getArrival()));
+                result = HttpClientTool.doGetSSL(url, header, null, requestConfig, basicCookieStore);
             }
 
-            Collections.sort(trainNumber);
-            //解析 信息
-            List<Map<String, String>> surplusTicket = getSecretStr(ticketMap, trainNumber, ticketConfig.getSeats().split(","));
-            for (Map<String, String> ticket : surplusTicket) {
-                String ticketCode = ticket.get("chehao");
-                String tobuySeat = ticket.get("toBuySeat");
-                //判断是否上了黑名单
-                if (Constant.blacklist.get(ticketCode + "_" + tobuySeat) == null) {
-                    System.out.println("啦啦啦有余票啦");
-                    initHeards();
 
+            Map data = (Map) JSON.parseObject(result, Map.class).get("data");
+            if (!CollectionUtils.isEmpty(data)) {
+                List<String> arr = (List<String>) data.get("result");
+                // 解析车次信息
+                Map<String, Map<String, String>> ticketMap = new ConcurrentHashMap<String, Map<String, String>>();
+                analysisTicket(arr, ticketMap);
+                //指定车次
+                List<String> trainNumber = new ArrayList<>();
+                if (StringUtils.isNotBlank(ticketConfig.getTrainNumbers())) {
+                    trainNumber = Arrays.asList(ticketConfig.getTrainNumbers().split(","));
+                } else { //没有指定车次 就默认所有车次
+                    Set<String> keys = ticketMap.keySet();
+                    trainNumber.addAll(keys);
+                }
+
+                Collections.sort(trainNumber);
+                //解析 信息
+                List<Map<String, String>> surplusTicket = getSecretStr(ticketMap, trainNumber, ticketConfig.getSeats().split(","));
+                for (Map<String, String> ticket : surplusTicket) {
+                    String ticketCode = ticket.get("chehao");
+                    String tobuySeat = ticket.get("toBuySeat");
+                    //判断是否上了黑名单
+                    if (Constant.blacklist.get(ticketCode + "_" + tobuySeat) == null) {
+                        System.out.println("啦啦啦有余票啦");
+                        initHeards();
+                        Constant.bookQueue.put(ticket);
+                        reserveTicket(tobuySeat);
+                    }
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }
@@ -190,14 +196,24 @@ public class BuyTickets {
      */
     public void reserveTicket(String seat) {
         try {
-
+            System.out.println("预定下单");
             String orderId = "";
             Map<String, String> map = null;
             while (orderId.equals("") && (map = Constant.bookQueue.take()) != null) {
-
-
-                LoginService.checkOnline();
+                // while (orderId.equals("")) {
+                //校验登录
+                System.out.println("校验登录结果" + LoginService.checkOnline());
+                //
+                //点击预定
+                if (!submitOrderRequest(map.get("secret"))) {
+                    System.out.println("点击预定按钮失败");
+                    return;
+                }
+                //获取token
                 String token = initDc();
+                if ("".equals(token)) {
+                    return;
+                }
                 String key_check_isChange = token.split(",")[1];
                 token = token.split(",")[0];
                 //就是 死循环的购票
@@ -238,6 +254,37 @@ public class BuyTickets {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean submitOrderRequest(String secretStr) throws Exception {
+        Map<String, String> map = new HashMap<String, String>();
+        SimpleDateFormat shortSdf = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar cal = Calendar.getInstance();
+        map.put("back_train_date", shortSdf.format(cal.getTime()));
+        map.put("purpose_codes", "ADULT");
+        map.put("query_from_station_name", StationService.getCode(ticketConfig.getDeparture()));
+        map.put("query_to_station_name", StationService.getCode(ticketConfig.getArrival()));
+        map.put("secretStr", secretStr);
+        map.put("train_date", ticketConfig.getDate());
+        map.put("tour_flag", "dc");
+        map.put("undefined", "");
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("User-Agent", ApiUrl.userAgent);
+        headers.put("Host", ApiUrl.host);
+        headers.put("Referer", "https://kyfw.12306.cn/otn/leftTicket/init?linktypeid=dc");
+        headers.put("Origin", ApiUrl.baseUrl);
+        headers.put("X-Requested-With", "XMLHttpRequest");
+        String result = "";
+        if (httpProxy == null) {
+            result = HttpClientTool.doPost(ApiUrl.submitOrderRequest, null, map);
+        } else {
+            result = HttpClientTool.doPost(ApiUrl.submitOrderRequest, null, map);
+        }
+        if ("302".equals(result)) return false;
+        Map rsmap = JSON.parseObject(result, Map.class);
+        assert rsmap != null;
+        return null != rsmap.get("status") && rsmap.get("status").toString().equals("true");
     }
 
     /**
@@ -312,19 +359,23 @@ public class BuyTickets {
     private String initDc() throws Exception {
         Map<String, String> map = new HashMap<String, String>();
         map.put("_json_att", "");
-        String result = HttpClientTool.doPost(ApiUrl.initDc, headers, map);
-        Pattern p = Pattern.compile("globalRepeatSubmitToken \\= '(.*?)';");
-        Matcher m = p.matcher(result);
+        String result = HttpClientTool.doGetSSL(ApiUrl.initDc, null, null);
+        if ("302".equals(result)) {
+            System.out.println("token获取失败");
+        }
         String token = "";
+        String regex = "globalRepeatSubmitToken \\= '(.*?)';";
+        Pattern p = Pattern.compile(regex);
+        Matcher m = p.matcher(result);
         while (m.find()) {
             token = m.group(1);
         }
-        Pattern p1 = Pattern.compile("'key_check_isChange':'(.*?)',");
+        regex = "'key_check_isChange':'(.*?)',";
+        Pattern p1 = Pattern.compile(regex);
         Matcher m1 = p1.matcher(result);
         while (m1.find()) {
             token += "," + m1.group(1);
         }
-        System.out.println(token);
         return token;
     }
 

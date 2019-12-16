@@ -39,6 +39,7 @@ public class LoginService {
                 loginPassCode = true;
             }
 */
+            System.out.println("登录");
             //设置cookies
             setCookies();
             //获取验证码
@@ -61,15 +62,15 @@ public class LoginService {
             //转发进入首页
             loginResult = HttpClientTool.doPost(ApiUrl.passport, getLoginHeader(), map);
             if (loginResult.equals("302")) {
-                HttpClientTool.doGet(ApiUrl.userLogin,getLoginHeader(),null);
+                HttpClientTool.doGet(ApiUrl.userLogin, getLoginHeader(), null);
             }
       /*      JSONObject login = JSON.parseObject(loginResult);
                System.out.println(loginResult);*/
 
-          //  checkOnline();
+            //  checkOnline();
 
 
-                 configService.init();
+            configService.init();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -169,8 +170,8 @@ public class LoginService {
     //设置cookies
     public void setCookies() {
         Logdevice logdevice = LogdeviceUtil.getLogdevice();
-        System.out.println("RAIL_EXPIRATION："+logdevice.getExp());
-        System.out.println("RAIL_DEVICEID："+logdevice.getDfp());
+        System.out.println("RAIL_EXPIRATION：" + logdevice.getExp());
+        System.out.println("RAIL_DEVICEID：" + logdevice.getDfp());
 
         BasicClientCookie expiration = new BasicClientCookie("RAIL_EXPIRATION", logdevice.getExp());
         expiration.setDomain(ApiUrl.host);

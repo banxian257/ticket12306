@@ -6,19 +6,10 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.util.WebConnectionWrapper;
 import com.wza.module.entity.HttpProxy;
 import com.wza.module.entity.Logdevice;
-import org.apache.http.client.methods.HttpGet;
-import org.openqa.selenium.Cookie;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriverService;
-import org.openqa.selenium.remote.DesiredCapabilities;
-import org.openqa.selenium.remote.RemoteWebDriver;
 import org.springframework.util.StringUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 用于获取cookies
@@ -37,18 +28,17 @@ public class LogdeviceUtil {
         }
         String proxyHost = config.getEnableProxy() ? config.getProxyIp().getIp() : null;
         int proxyPort = config.getEnableProxy() ? config.getProxyIp().getPort() : 0;*/
-        HttpProxy httpProxy=ProxyCache.getHttpProxy();
         try {
-            String url = LogdeviceUtil.getLogdeviceUrl(httpProxy.getIp(), httpProxy.getPort());
+            String url = LogdeviceUtil.getLogdeviceUrl(ProxyCache.getHttpProxy());
             if (StringUtils.isEmpty(url)) {
                 System.out.println("获取cookieurl出错，稍后再试");
                 return null;
             }
-         String msg=   HttpClientTool.doGetSSL(url,null,null);
+            String msg = HttpClientTool.doGetSSL(url, null, null);
             msg = msg.replace("callbackFunction('", "");
             msg = msg.replace("')", "");
 
-            Map obj =  (Map) JSON.parseObject(msg, Map.class);
+            Map obj = (Map) JSON.parseObject(msg, Map.class);
             Logdevice model = new Logdevice(obj.get("exp").toString(),
                     obj.get("dfp").toString());
             return model;
@@ -58,8 +48,14 @@ public class LogdeviceUtil {
         return null;
     }
 
-    public static String getLogdeviceUrl(String proxyHost, int proxyPort) {
-        WebClient wc = new WebClient(BrowserVersion.CHROME, proxyHost, proxyPort);
+    public static String getLogdeviceUrl(HttpProxy httpProxy) {
+        WebClient wc = null;
+        if (httpProxy == null) {
+            wc = new WebClient();
+        } else {
+            wc = new WebClient(BrowserVersion.CHROME, httpProxy.getIp(), httpProxy.getPort());
+        }
+
         wc.getOptions().setTimeout(15000);
         wc.getOptions().setUseInsecureSSL(true);
         wc.getOptions().setJavaScriptEnabled(true);

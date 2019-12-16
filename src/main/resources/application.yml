@@ -6,7 +6,7 @@ logging:
     org.apache.http.headers: info
 
 # 抢票线最大线程数量
-max_pool_count : 10
+max_pool_count : 1
 
 12306:
  account: 18251780867
@@ -15,10 +15,10 @@ max_pool_count : 10
  # 可用值 商务座,特等座,一等座,二等座,高级软卧,软卧,硬卧,软座,硬座,无座
  #请不要输错车站名
 ticket:
-  date: 2020-01-08
-  train_number: K528
-  seats: 无座
-  departure : 上海南
+  date: 2020-01-03
+  train_number: G222
+  seats: 二等座
+  departure : 上海
   arrival : 苏州
   user_name: 王志傲
 

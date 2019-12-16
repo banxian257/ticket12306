@@ -17,10 +17,13 @@ public class LoginRunner implements ApplicationRunner {
         StationService.init();
         GetProxyTask getProxyTask = SpringContextUtil.getBean(GetProxyTask.class);
         //初始化代理ip
-        getProxyTask.getProxyIp();
-        LoginService loginService = SpringContextUtil.getBean(LoginService.class);
+      //  getProxyTask.getProxyIp();
+
         //初始化查询余票 地址
         QueryTicket.init();
+        System.out.println("登录对象" );
+        LoginService loginService = SpringContextUtil.getBean(LoginService.class);
+        System.out.println("登录对象" + loginService);
         //登录
         loginService.login();
     }
