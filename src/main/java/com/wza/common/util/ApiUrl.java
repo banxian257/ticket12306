@@ -7,8 +7,8 @@ public interface ApiUrl {
     //前缀
     String baseUrl = "https://kyfw.12306.cn";
 
-    String leftTicketByCdn = "http://%s/otn/%s?leftTicketDTO.train_date=%s&leftTicketDTO.from_station=%s&leftTicketDTO.to_station=%s&purpose_codes=ADULT";
-    //余票
+    String leftTicketByCdn = "http://kyfw.12306.cn/otn/%s?leftTicketDTO.train_date=%s&leftTicketDTO.from_station=%s&leftTicketDTO.to_station=%s&purpose_codes=ADULT";
+    //
     String leftTicket = baseUrl
             + "/otn/leftTicket/query?leftTicketDTO.train_date=%s&leftTicketDTO.from_station=%s&leftTicketDTO.to_station=%s&purpose_codes=ADULT";
     //登录

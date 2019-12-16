@@ -13,41 +13,38 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
-
 
 @Component
-public class     GetProxyTask {
+public class GetProxyTask {
 
-    private Logger logger = LoggerFactory.getLogger(GetProxyTask.class);
+    //private Logger logger = LoggerFactory.getLogger(GetProxyTask.class);
 
 
     public static void main(String[] args) {
-/*        GetProxyTask getProxyTask = new GetProxyTask();
+        GetProxyTask getProxyTask = new GetProxyTask();
         getProxyTask.getProxyIp();
         for (HttpProxy httpProxy : ProxyCache.getProxy()) {
-            System.out.println(httpProxy.getIp() + "      " + httpProxy.getPort());
-        }*/
-
+            System.out.println("有效的ip：" + httpProxy.getIp() + "      " + httpProxy.getPort());
+        }
+        ProxyCache.setUsableProxy();
+        System.out.println("有效的ip数量：" + ProxyCache.getProxy().size());
 
     }
 
     @Scheduled(fixedDelay = 5 * 60 * 1000)
     public void getProxyIp() {
         try {
-            for (int page = 1; page < 50; page++) {
+            for (int page = 1; page < 7; page++) {
                 this.getProxyIp3366(page);
             }
+            ProxyCache.setUsableProxy();
+            System.out.println("有效的ip数量：" + ProxyCache.getProxy().size());
         } catch (Exception e) {
-            logger.error("获取ip3366出错", e);
+            //     logger.error("获取ip3366出错", e);
         }
     }
 
@@ -71,8 +68,32 @@ public class     GetProxyTask {
                 HttpProxy httpProxy = new HttpProxy();
                 httpProxy.setIp(ip);
                 httpProxy.setPort(Util.getInt(port));
-                ProxyCache.addProxy(httpProxy);
+                if (QueryTicket.checkIp(httpProxy)) {
+                    ProxyCache.addProxy(httpProxy);
+                    System.out.println("有效ip:" + httpProxy.getIp() + "  " + httpProxy.getPort());
+                }
+
             }
+        }
+    }
+
+    @Scheduled(fixedDelay = 5 * 60 * 1000)
+    public void checkIp() {
+        try {
+            boolean flag = false;
+            for (HttpProxy httpProxy : ProxyCache.getProxy()) {
+                if (!QueryTicket.checkIp(httpProxy)) {
+                    ProxyCache.delProxy(httpProxy);
+                    flag = true;
+                }
+            }
+            if (flag) {
+                ProxyCache.setUsableProxy();
+            }
+
+            System.out.println("有效的ip数量：" + ProxyCache.getProxy().size());
+        } catch (Exception e) {
+            //     logger.error("获取ip3366出错", e);
         }
     }
 }

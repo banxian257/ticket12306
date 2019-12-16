@@ -47,7 +47,7 @@ public class ConfigService {
                 public void run() {
                     try {
                         new BuyTickets().QueryTicket(ticketConfig);
-                        System.out.println("线程"+Thread.currentThread().getId()+"抢票中");
+                        System.out.println("线程" + Thread.currentThread().getId() + "抢票中");
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

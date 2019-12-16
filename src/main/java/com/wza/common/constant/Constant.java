@@ -1,5 +1,7 @@
 package com.wza.common.constant;
 
+import org.apache.http.impl.client.BasicCookieStore;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -15,4 +17,8 @@ public class Constant {
     //是否执行
     public static boolean suc = false;
     public static final BlockingQueue<Map<String, String>> bookQueue = new LinkedBlockingQueue<Map<String, String>>(10);
+
+    public static final BasicCookieStore cookieStore = new BasicCookieStore();
+
+    public  static String queryTicket="";
 }

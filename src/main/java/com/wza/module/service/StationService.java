@@ -78,7 +78,7 @@ public class StationService {
 
     public static void main(String[] args) {
         init();
-        System.out.println( getCode("上海南站"));
+        System.out.println( getCode(""));
     }
 
 

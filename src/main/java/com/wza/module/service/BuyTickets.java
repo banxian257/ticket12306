@@ -4,9 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.wza.common.constant.Constant;
 import com.wza.common.util.*;
+import com.wza.module.entity.HttpProxy;
 import com.wza.module.entity.SeatType;
 import com.wza.module.entity.TicketConfig;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpHost;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.BasicCookieStore;
 import org.springframework.util.CollectionUtils;
 
 import java.net.URLDecoder;
@@ -21,6 +25,7 @@ public class BuyTickets {
     private TicketConfig ticketConfig;
     private String oldPassengerStr;
     private String passengerTicketStr;
+    private BasicCookieStore basicCookieStore = new BasicCookieStore();
 
     /**
      * 查询剩余车票
@@ -37,8 +42,21 @@ public class BuyTickets {
             System.out.println("请输入正确的出发站或到达站");
             System.exit(0);
         }
-        String result = HttpClientTool.doGetSSL(String.format(ApiUrl.leftTicket, ticketConfig.getDate(),
-                StationService.getCode(ticketConfig.getDeparture()), StationService.getCode(ticketConfig.getArrival())), header, null);
+        HttpProxy httpProxy = ProxyCache.getHttpProxy();
+        if (httpProxy == null) {
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return;
+        }
+        HttpHost proxy = new HttpHost(httpProxy.getIp(), httpProxy.getPort());
+        RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(3000)
+                .setConnectionRequestTimeout(3000).setSocketTimeout(3000).setProxy(proxy).build();
+        String url = String.format(ApiUrl.leftTicketByCdn, Constant.queryTicket, ticketConfig.getDate(),
+                StationService.getCode(ticketConfig.getDeparture()), StationService.getCode(ticketConfig.getArrival()));
+        String result = HttpClientTool.doGetSSL(url, header, null, requestConfig, basicCookieStore);
 
         Map data = (Map) JSON.parseObject(result, Map.class).get("data");
         if (!CollectionUtils.isEmpty(data)) {
@@ -56,15 +74,15 @@ public class BuyTickets {
             }
 
             Collections.sort(trainNumber);
-            //解析 余票信息
+            //解析 信息
             List<Map<String, String>> surplusTicket = getSecretStr(ticketMap, trainNumber, ticketConfig.getSeats().split(","));
             for (Map<String, String> ticket : surplusTicket) {
                 String ticketCode = ticket.get("chehao");
                 String tobuySeat = ticket.get("toBuySeat");
                 //判断是否上了黑名单
                 if (Constant.blacklist.get(ticketCode + "_" + tobuySeat) == null) {
+                    System.out.println("啦啦啦有余票啦");
                     initHeards();
-                    reserveTicket("");
 
                 }
             }
@@ -100,6 +118,8 @@ public class BuyTickets {
                             seatsMap.put("toBuySeat", mat);
                             surplusTicket.add(seatsMap);
                         }
+                    } else {
+                        System.out.println(train + " " + mat + "暂无余票");
                     }
                 }
 
