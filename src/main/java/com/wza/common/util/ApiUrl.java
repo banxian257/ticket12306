@@ -6,11 +6,8 @@ package com.wza.common.util;
 public interface ApiUrl {
     //前缀
     String baseUrl = "https://kyfw.12306.cn";
-
+    //动态地址 余票查询  12306经常修改api   所有动态获取填充
     String leftTicketByCdn = "http://kyfw.12306.cn/otn/%s?leftTicketDTO.train_date=%s&leftTicketDTO.from_station=%s&leftTicketDTO.to_station=%s&purpose_codes=ADULT";
-    //
-    String leftTicket = baseUrl
-            + "/otn/leftTicket/query?leftTicketDTO.train_date=%s&leftTicketDTO.from_station=%s&leftTicketDTO.to_station=%s&purpose_codes=ADULT";
     //登录
     String login = baseUrl + "/passport/web/login";
 
@@ -24,13 +21,9 @@ public interface ApiUrl {
     //登录校验验证码
     String captchaCheck = baseUrl + "/passport/captcha/captcha-check?answer=%s&rand=sjrand&login_site=E&_=%s";
 
-    String uamtk = baseUrl + "/passport/web/auth/uamtk";
-
-    String uamauthclient = baseUrl + "/otn/uamauthclient";
     //校验登录状态
     String uamtkStatic = baseUrl + "/passport/web/auth/uamtk-static";
 
-    String userInfo = baseUrl + "/otn/modifyUser/initQueryUserInfoApi";
     //乘客信息
     String getPassengerDTOs = baseUrl + "/otn/confirmPassenger/getPassengerDTOs";
     //预定按钮
@@ -51,13 +44,6 @@ public interface ApiUrl {
 
     String loginInitPage = baseUrl + "/otn/login/init";
 
-    String browserDeviceId = baseUrl + "/otn/HttpZF/logdevice";
-
-    String initMy12306 = baseUrl + "/otn/index/initMy12306";
-
-    String loginAysnSuggest = baseUrl + "/otn/login/loginAysnSuggest";
-
-    String autoSubmitOrderRequest = baseUrl + "/otn/confirmPassenger/autoSubmitOrderRequest";
     //买票验证码
     String  checkRandCodeAnsyn= baseUrl +"/otn/passcodeNew/checkRandCodeAnsyn";
 
@@ -82,7 +68,7 @@ public interface ApiUrl {
     String station = "https://kyfw.12306.cn/otn/resources/js/framework/station_name.js?station_version=1.9098";
     String dc="https://kyfw.12306.cn/otn/leftTicket/init?linktypeid=dc";
 
-    static String getRailUrl = "https://kyfw.12306.cn/otn/HttpZF/logdevice" +
+     String getRailUrl = "https://kyfw.12306.cn/otn/HttpZF/logdevice" +
             //"?algID=8iIPwpB28l"+
             "?algID=XWptt1kXbs" +
             //"&hashCode=XQTW18RSf_dOYnqpGaj_yA-WKSsKbH77QE7zN-cCdB0"+
