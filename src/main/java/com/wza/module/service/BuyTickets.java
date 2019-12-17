@@ -203,7 +203,6 @@ public class BuyTickets {
                 // while (orderId.equals("")) {
                 //校验登录
                 System.out.println("校验登录结果" + LoginService.checkOnline());
-                //
                 //点击预定
                 if (!submitOrderRequest(map.get("secret"))) {
                     System.out.println("点击预定按钮失败");
@@ -262,8 +261,8 @@ public class BuyTickets {
         Calendar cal = Calendar.getInstance();
         map.put("back_train_date", shortSdf.format(cal.getTime()));
         map.put("purpose_codes", "ADULT");
-        map.put("query_from_station_name", StationService.getCode(ticketConfig.getDeparture()));
-        map.put("query_to_station_name", StationService.getCode(ticketConfig.getArrival()));
+        map.put("query_from_station_name", ticketConfig.getDeparture());
+        map.put("query_to_station_name", ticketConfig.getArrival());
         map.put("secretStr", secretStr);
         map.put("train_date", ticketConfig.getDate());
         map.put("tour_flag", "dc");
@@ -273,13 +272,13 @@ public class BuyTickets {
         headers.put("User-Agent", ApiUrl.userAgent);
         headers.put("Host", ApiUrl.host);
         headers.put("Referer", "https://kyfw.12306.cn/otn/leftTicket/init?linktypeid=dc");
-        headers.put("Origin", ApiUrl.baseUrl);
         headers.put("X-Requested-With", "XMLHttpRequest");
+        headers.put("Origin", ApiUrl.baseUrl);
         String result = "";
         if (httpProxy == null) {
             result = HttpClientTool.doPost(ApiUrl.submitOrderRequest, null, map);
         } else {
-            result = HttpClientTool.doPost(ApiUrl.submitOrderRequest, null, map);
+            result = HttpClientTool.doPost(ApiUrl.submitOrderRequest, headers, map);
         }
         if ("302".equals(result)) return false;
         Map rsmap = JSON.parseObject(result, Map.class);

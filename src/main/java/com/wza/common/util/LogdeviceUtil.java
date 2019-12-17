@@ -20,7 +20,9 @@ public class LogdeviceUtil {
 
     public static Logdevice getLogdevice() {
 
-    /*    Config config = SpringContextUtil.getBean(Config.class);
+    /*
+    //使用代理
+     Config config = SpringContextUtil.getBean(Config.class);
         CookiesConfig cookiesConfig = SpringContextUtil.getBean(CookiesConfig.class);
         if(cookiesConfig.getEnable()){
             return new Logdevice(cookiesConfig.getRailExpiration(),
